@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, SafeAreaView, TouchableOpacity, Modal } from 'react-native';
+import { StyleSheet, View, SafeAreaView, TouchableOpacity, Modal, ScrollView } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTheme } from '../../context/ThemeContext';
 import { useUser } from '../../context/UserContext';
@@ -97,8 +97,8 @@ export default function LessonScreen() {
   if (isFinished) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-        <View style={styles.finishContainer}>
-          <Sygnalek state="CELEBRATE" size={250} />
+        <ScrollView contentContainerStyle={styles.finishContainer}>
+          <Sygnalek state="CELEBRATE" size={200} />
           <AppText size={32} bold center>Świetna robota!</AppText>
           <AppText size={20} center style={{ marginTop: 10 }}>
             Ukończyłeś lekcję: {lesson.title}
@@ -107,8 +107,10 @@ export default function LessonScreen() {
             <AppText size={24} bold color={colors.primary}>+20 XP</AppText>
             <AppText size={16}>Twoja wiedza rośnie!</AppText>
           </AppCard>
-          <AppButton title="WRÓĆ DO MAPY" onPress={() => router.replace('/(tabs)')} />
-        </View>
+          <View style={{ width: '100%', marginTop: 20 }}>
+            <AppButton title="WRÓĆ DO MAPY" onPress={() => router.replace('/(tabs)')} />
+          </View>
+        </ScrollView>
       </SafeAreaView>
     );
   }
@@ -132,7 +134,7 @@ export default function LessonScreen() {
         </View>
       </View>
 
-      <View style={styles.content}>
+      <ScrollView style={styles.content}>
         <View style={styles.mascotRow}>
           <Sygnalek state={mascotState} size={100} />
           <View style={styles.bubble}>
@@ -143,7 +145,7 @@ export default function LessonScreen() {
         </View>
 
         {renderQuestion()}
-      </View>
+      </ScrollView>
 
       <View style={styles.footer}>
         <AppButton
@@ -172,9 +174,11 @@ export default function LessonScreen() {
                 {isCorrect ? 'Doskonale!' : 'Niezupełnie...'}
               </AppText>
             </View>
-            <AppText size={18} style={styles.explanation}>
-              {currentQuestion.explanation}
-            </AppText>
+            <ScrollView style={{ maxHeight: 300 }}>
+              <AppText size={18} style={styles.explanation}>
+                {currentQuestion.explanation}
+              </AppText>
+            </ScrollView>
             <AppButton
               title="DALEJ"
               variant={isCorrect ? 'primary' : 'danger'}
@@ -283,7 +287,7 @@ const styles = StyleSheet.create({
     lineHeight: 24,
   },
   finishContainer: {
-    flex: 1,
+    flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 40,

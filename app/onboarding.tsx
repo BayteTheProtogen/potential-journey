@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StyleSheet, View, SafeAreaView, Switch } from 'react-native';
+import { StyleSheet, View, SafeAreaView, Switch, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Sygnalek, SygnalekState } from '../components/mascot/Sygnalek';
 import { AppText } from '../components/common/AppText';
@@ -116,9 +116,9 @@ export default function OnboardingScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      <View style={styles.content}>
+      <ScrollView contentContainerStyle={styles.content}>
         {renderStep()}
-      </View>
+      </ScrollView>
       <View style={styles.footer}>
         <AppButton
           title={step === 4 ? "ZACZYNAJMY!" : "DALEJ"}
@@ -134,7 +134,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   content: {
-    flex: 1,
+    flexGrow: 1,
     padding: 24,
     justifyContent: 'center',
     alignItems: 'center',

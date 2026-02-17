@@ -1,5 +1,5 @@
 import { StatusBar } from 'expo-status-bar';
-import { Platform, StyleSheet, View, Switch } from 'react-native';
+import { Platform, StyleSheet, View, Switch, ScrollView } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
 import { AppText } from '../components/common/AppText';
 import { AppCard } from '../components/common/AppCard';
@@ -11,7 +11,7 @@ export default function SettingsModal() {
   const router = useRouter();
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <ScrollView contentContainerStyle={[styles.container, { backgroundColor: colors.background }]}>
       <AppText size={28} bold style={styles.title}>Ustawienia</AppText>
 
       <AppCard style={styles.section}>
@@ -51,19 +51,19 @@ export default function SettingsModal() {
 
       <AppButton
         title="GOTOWE"
-        style={{ marginTop: 'auto', marginBottom: 20 }}
+        style={{ marginTop: 20, marginBottom: 20 }}
         onPress={() => router.back()}
       />
 
       {/* Use a light status bar on iOS to account for the black space above the modal */}
       <StatusBar style={Platform.OS === 'ios' ? 'light' : 'auto'} />
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    flexGrow: 1,
     padding: 24,
   },
   title: {

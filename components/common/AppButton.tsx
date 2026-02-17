@@ -1,5 +1,5 @@
 import React from 'react';
-import { TouchableOpacity, StyleSheet, ViewStyle, ActivityIndicator } from 'react-native';
+import { TouchableOpacity, StyleSheet, ViewStyle, ActivityIndicator, StyleProp } from 'react-native';
 import { AppText } from './AppText';
 import { useTheme } from '../../context/ThemeContext';
 import * as Haptics from 'expo-haptics';
@@ -11,7 +11,7 @@ interface AppButtonProps {
   size?: 'normal' | 'large';
   disabled?: boolean;
   loading?: boolean;
-  style?: ViewStyle;
+  style?: StyleProp<ViewStyle>;
 }
 
 export const AppButton: React.FC<AppButtonProps> = ({

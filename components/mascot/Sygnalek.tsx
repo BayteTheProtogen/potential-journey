@@ -7,8 +7,7 @@ import Animated, {
   withSequence,
   useSharedValue,
   withSpring,
-  interpolate,
-  Extrapolate
+  withDelay,
 } from 'react-native-reanimated';
 import { AppText } from '../common/AppText';
 import { useTheme } from '../../context/ThemeContext';
@@ -25,7 +24,6 @@ const BINARY_COUNT = 12;
 export const Sygnalek: React.FC<SygnalekProps> = ({ state, size = 150 }) => {
   const { colors } = useTheme();
   const bounce = useSharedValue(0);
-  const rotation = useSharedValue(0);
 
   useEffect(() => {
     bounce.value = withRepeat(
@@ -44,7 +42,7 @@ export const Sygnalek: React.FC<SygnalekProps> = ({ state, size = 150 }) => {
       case 'ERROR': return '(╯°□°)╯';
       case 'THINKING': return '(⊙_⊙)';
       case 'CELEBRATE': return '(づ￣ ³￣)づ';
-      default: return 'd(•‿•)b';
+      default: return 'd(-_-)b';
     }
   };
 
@@ -61,7 +59,7 @@ export const Sygnalek: React.FC<SygnalekProps> = ({ state, size = 150 }) => {
     return {
       transform: [
         { translateY: bounce.value * -10 },
-        { scale: state === 'SUCCESS' ? withSpring(1.2) : withSpring(1) }
+        { scale: state === 'SUCCESS' || state === 'CELEBRATE' ? withSpring(1.2) : withSpring(1) }
       ],
     };
   });
@@ -69,15 +67,19 @@ export const Sygnalek: React.FC<SygnalekProps> = ({ state, size = 150 }) => {
   return (
     <View style={[styles.container, { width: size, height: size }]}>
       {/* Binary Aura */}
-      {[...Array(BINARY_COUNT)].map((_, i) => (
-        <BinaryParticle key={i} index={i} color={getAuraColor()} mascotSize={size} />
-      ))}
+      <View style={StyleSheet.absoluteFill}>
+        {[...Array(BINARY_COUNT)].map((_, i) => (
+          <BinaryParticle key={i} index={i} color={getAuraColor()} mascotSize={size} />
+        ))}
+      </View>
 
-      <Animated.View style={[styles.mascotContainer, animatedMascotStyle]}>
+      <Animated.View style={[styles.mascotContainer, animatedMascotStyle, { width: size, height: size }]}>
         <AppText
-          size={size * 0.25}
+          size={size * 0.22} // Reduced size slightly to ensure it fits
           bold
           color={getAuraColor()}
+          numberOfLines={1}
+          adjustsFontSizeToFit
           style={styles.mascotText}
         >
           {getMascotString()}
@@ -120,10 +122,12 @@ const BinaryParticle = ({ index, color, mascotSize }: { index: number, color: st
 
     return {
       position: 'absolute',
+      left: '50%',
+      top: '50%',
       opacity: opacity.value,
       transform: [
-        { translateX: x },
-        { translateY: y },
+        { translateX: x - 5 }, // Center adjustment
+        { translateY: y - 5 },
         { scale: 0.5 + offset.value * 0.5 }
       ],
     };
@@ -136,24 +140,22 @@ const BinaryParticle = ({ index, color, mascotSize }: { index: number, color: st
   );
 };
 
-// Helper for delay in reanimated
-function withDelay(delay: number, animation: any) {
-  'worklet';
-  return withSequence(withTiming(0, { duration: delay }), animation);
-}
 
 const styles = StyleSheet.create({
   container: {
     justifyContent: 'center',
     alignItems: 'center',
+    position: 'relative',
   },
   mascotContainer: {
     justifyContent: 'center',
     alignItems: 'center',
   },
   mascotText: {
+    textAlign: 'center',
     textShadowColor: 'rgba(0, 0, 0, 0.1)',
     textShadowOffset: { width: 0, height: 2 },
     textShadowRadius: 4,
+    minWidth: '100%',
   }
 });

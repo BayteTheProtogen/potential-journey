@@ -22,6 +22,7 @@ export const AppText: React.FC<AppTextProps> = ({
 
   return (
     <Text
+      allowFontScaling={false} // We handle scaling manually via ThemeContext
       style={[
         {
           fontSize: getFontSize(size),

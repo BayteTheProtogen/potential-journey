@@ -21,7 +21,7 @@ export default function RankingScreen() {
     <AppCard
       style={[
         styles.rankItem,
-        item.isUser && { borderColor: colors.primary, borderWidth: 2 }
+        item.isUser ? { borderColor: colors.primary, borderWidth: 2 } : {}
       ]}
     >
       <View style={styles.rankBadge}>
