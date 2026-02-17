@@ -37,7 +37,7 @@ export default function PathScreen() {
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       {renderHeader()}
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        <View style={styles.heroSection}>
+        <View style={[styles.heroSection, { backgroundColor: colors.card }]}>
           <Sygnalek state="IDLE" size={120} />
           <View style={styles.heroBubble}>
             <AppText size={18} bold>Witaj w Cyber-Mieście!</AppText>
@@ -116,7 +116,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: 20,
-    backgroundColor: '#F0F9FF',
     margin: 20,
     borderRadius: 20,
   },
