@@ -1,14 +1,14 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { DarkTheme, DefaultTheme, ThemeProvider as NavThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
+import { Stack, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import { useColorScheme } from 'react-native';
 import 'react-native-reanimated';
 
 import { ThemeProvider as AppThemeProvider } from '../context/ThemeContext';
-import { UserProvider } from '../context/UserContext';
+import { UserProvider, useUser } from '../context/UserContext';
 
 export {
   ErrorBoundary,
@@ -51,6 +51,21 @@ export default function RootLayout() {
 
 function RootLayoutNav() {
   const colorScheme = useColorScheme();
+  const { progress, isLoading } = useUser();
+  const segments = useSegments();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (isLoading) return;
+
+    const inAuthGroup = segments[0] === '(tabs)';
+
+    if (!progress.hasSeenOnboarding && segments[0] !== 'onboarding') {
+      router.replace('/onboarding');
+    } else if (progress.hasSeenOnboarding && segments[0] === 'onboarding') {
+      router.replace('/(tabs)');
+    }
+  }, [progress.hasSeenOnboarding, isLoading, segments]);
 
   return (
     <NavThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>

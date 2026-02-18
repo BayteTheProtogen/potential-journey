@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, StyleSheet, Dimensions } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import Animated, {
   useAnimatedStyle,
   withRepeat,
@@ -8,6 +8,7 @@ import Animated, {
   useSharedValue,
   withSpring,
   withDelay,
+  interpolate,
 } from 'react-native-reanimated';
 import { AppText } from '../common/AppText';
 import { useTheme } from '../../context/ThemeContext';
@@ -19,32 +20,82 @@ interface SygnalekProps {
   size?: number;
 }
 
-const BINARY_COUNT = 12;
+const BINARY_COUNT = 15;
 
 export const Sygnalek: React.FC<SygnalekProps> = ({ state, size = 150 }) => {
   const { colors } = useTheme();
-  const bounce = useSharedValue(0);
+
+  // Animation values
+  const breath = useSharedValue(0);
+  const blink = useSharedValue(1);
+  const dance = useSharedValue(0);
+  const shake = useSharedValue(0);
 
   useEffect(() => {
-    bounce.value = withRepeat(
-      withSequence(
-        withTiming(1, { duration: 1500 }),
-        withTiming(0, { duration: 1500 })
-      ),
+    // Breathing animation
+    breath.value = withRepeat(
+      withTiming(1, { duration: 2000 }),
       -1,
       true
     );
+
+    // Blinking loop
+    const blinkInterval = setInterval(() => {
+      if (Math.random() > 0.7) {
+        blink.value = withSequence(
+          withTiming(0, { duration: 100 }),
+          withTiming(1, { duration: 100 })
+        );
+      }
+    }, 3000);
+
+    return () => clearInterval(blinkInterval);
   }, []);
 
-  const getMascotString = () => {
+  useEffect(() => {
+    if (state === 'CELEBRATE' || state === 'SUCCESS') {
+      dance.value = withRepeat(
+        withSequence(
+          withTiming(-1, { duration: 300 }),
+          withTiming(1, { duration: 300 })
+        ),
+        -1,
+        true
+      );
+    } else {
+      dance.value = withSpring(0);
+    }
+
+    if (state === 'ERROR') {
+      shake.value = withRepeat(
+        withSequence(
+          withTiming(-5, { duration: 50 }),
+          withTiming(5, { duration: 50 })
+        ),
+        6,
+        true
+      );
+    } else {
+      shake.value = 0;
+    }
+  }, [state]);
+
+  const getMascotParts = () => {
     switch (state) {
-      case 'SUCCESS': return '\\(^ヮ^)/';
-      case 'ERROR': return '(╯°□°)╯';
-      case 'THINKING': return '(⊙_⊙)';
-      case 'CELEBRATE': return '(づ￣ ³￣)づ';
-      default: return 'd(-_-)b';
+      case 'SUCCESS':
+        return { left: '( ', eye: '^', mouth: ' ヮ ', eyeRight: '^', right: ' )' };
+      case 'ERROR':
+        return { left: '( ', eye: '°', mouth: ' □ ', eyeRight: '°', right: ' )' };
+      case 'THINKING':
+        return { left: '( ', eye: '⊙', mouth: ' _ ', eyeRight: '⊙', right: ' )' };
+      case 'CELEBRATE':
+        return { left: '(づ ', eye: '￣', mouth: ' ³ ', eyeRight: '￣', right: ' )づ' };
+      default:
+        return { left: '( ', eye: '•', mouth: ' ‿ ', eyeRight: '•', right: ' )' };
     }
   };
+
+  const parts = getMascotParts();
 
   const getAuraColor = () => {
     switch (state) {
@@ -55,14 +106,26 @@ export const Sygnalek: React.FC<SygnalekProps> = ({ state, size = 150 }) => {
     }
   };
 
-  const animatedMascotStyle = useAnimatedStyle(() => {
+  const animatedContainerStyle = useAnimatedStyle(() => {
     return {
       transform: [
-        { translateY: bounce.value * -10 },
-        { scale: state === 'SUCCESS' || state === 'CELEBRATE' ? withSpring(1.2) : withSpring(1) }
+        { translateY: interpolate(breath.value, [0, 1], [0, -size * 0.05]) },
+        { rotate: `${dance.value * 5}deg` },
+        { translateX: shake.value },
+        { scale: state === 'CELEBRATE' || state === 'SUCCESS' ? withSpring(1.15) : withSpring(1) }
       ],
     };
   });
+
+  const eyeStyle = useAnimatedStyle(() => {
+    return {
+      transform: [
+        { scaleY: blink.value }
+      ],
+    };
+  });
+
+  const fontSize = size * 0.22;
 
   return (
     <View style={[styles.container, { width: size, height: size }]}>
@@ -73,17 +136,18 @@ export const Sygnalek: React.FC<SygnalekProps> = ({ state, size = 150 }) => {
         ))}
       </View>
 
-      <Animated.View style={[styles.mascotContainer, animatedMascotStyle, { width: size, height: size }]}>
-        <AppText
-          size={size * 0.22} // Reduced size slightly to ensure it fits
-          bold
-          color={getAuraColor()}
-          numberOfLines={1}
-          adjustsFontSizeToFit
-          style={styles.mascotText}
-        >
-          {getMascotString()}
-        </AppText>
+      <Animated.View style={[styles.mascotContainer, animatedContainerStyle, { width: size, height: size }]}>
+        <View style={styles.faceRow}>
+          <AppText size={fontSize} bold color={getAuraColor()} numberOfLines={1} adjustsFontSizeToFit>{parts.left}</AppText>
+          <Animated.View style={eyeStyle}>
+            <AppText size={fontSize} bold color={getAuraColor()} numberOfLines={1} adjustsFontSizeToFit>{parts.eye}</AppText>
+          </Animated.View>
+          <AppText size={fontSize} bold color={getAuraColor()} numberOfLines={1} adjustsFontSizeToFit>{parts.mouth}</AppText>
+          <Animated.View style={eyeStyle}>
+            <AppText size={fontSize} bold color={getAuraColor()} numberOfLines={1} adjustsFontSizeToFit>{parts.eyeRight}</AppText>
+          </Animated.View>
+          <AppText size={fontSize} bold color={getAuraColor()} numberOfLines={1} adjustsFontSizeToFit>{parts.right}</AppText>
+        </View>
       </Animated.View>
     </View>
   );
@@ -95,7 +159,7 @@ const BinaryParticle = ({ index, color, mascotSize }: { index: number, color: st
   const char = index % 2 === 0 ? '0' : '1';
 
   useEffect(() => {
-    const delay = index * 200;
+    const delay = index * 150;
     opacity.value = withRepeat(
       withSequence(
         withDelay(delay, withTiming(0.6, { duration: 1000 })),
@@ -106,7 +170,7 @@ const BinaryParticle = ({ index, color, mascotSize }: { index: number, color: st
     );
     offset.value = withRepeat(
       withSequence(
-        withDelay(delay, withTiming(1, { duration: 2000 })),
+        withDelay(delay, withTiming(1, { duration: 2500 })),
         withTiming(0, { duration: 0 })
       ),
       -1,
@@ -116,9 +180,9 @@ const BinaryParticle = ({ index, color, mascotSize }: { index: number, color: st
 
   const animatedStyle = useAnimatedStyle(() => {
     const angle = (index / BINARY_COUNT) * Math.PI * 2;
-    const radius = mascotSize * 0.45;
-    const x = Math.cos(angle) * radius * (0.8 + offset.value * 0.4);
-    const y = Math.sin(angle) * radius * (0.8 + offset.value * 0.4);
+    const radius = mascotSize * 0.5;
+    const x = Math.cos(angle) * radius * (0.7 + offset.value * 0.5);
+    const y = Math.sin(angle) * radius * (0.7 + offset.value * 0.5);
 
     return {
       position: 'absolute',
@@ -126,9 +190,9 @@ const BinaryParticle = ({ index, color, mascotSize }: { index: number, color: st
       top: '50%',
       opacity: opacity.value,
       transform: [
-        { translateX: x - 5 }, // Center adjustment
+        { translateX: x - 5 },
         { translateY: y - 5 },
-        { scale: 0.5 + offset.value * 0.5 }
+        { scale: 0.4 + offset.value * 0.6 }
       ],
     };
   });
@@ -140,7 +204,6 @@ const BinaryParticle = ({ index, color, mascotSize }: { index: number, color: st
   );
 };
 
-
 const styles = StyleSheet.create({
   container: {
     justifyContent: 'center',
@@ -151,11 +214,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  mascotText: {
-    textAlign: 'center',
-    textShadowColor: 'rgba(0, 0, 0, 0.1)',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 4,
-    minWidth: '100%',
+  faceRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
   }
 });

@@ -7,6 +7,7 @@ import { AppCard } from '../../components/common/AppCard';
 import { AppButton } from '../../components/common/AppButton';
 import { Sygnalek } from '../../components/mascot/Sygnalek';
 import { Trophy, Award, Target, Zap } from 'lucide-react-native';
+import Animated, { FadeInUp, ScaleInCenter } from 'react-native-reanimated';
 
 export default function ProfileScreen() {
   const { colors } = useTheme();
@@ -29,11 +30,17 @@ export default function ProfileScreen() {
 
         <View style={styles.statsGrid}>
           {stats.map((stat, i) => (
-            <AppCard key={i} style={styles.statCard}>
-              <stat.icon color={stat.color} size={32} />
-              <AppText size={24} bold style={{ marginTop: 10 }}>{stat.value}</AppText>
-              <AppText size={14} color="#666">{stat.label}</AppText>
-            </AppCard>
+            <Animated.View
+              key={i}
+              entering={ScaleInCenter.delay(i * 100)}
+              style={{ width: '31%' }}
+            >
+              <AppCard style={[styles.statCard, { width: '100%' }]}>
+                <stat.icon color={stat.color} size={32} />
+                <AppText size={24} bold style={{ marginTop: 10 }}>{stat.value}</AppText>
+                <AppText size={14} color="#666">{stat.label}</AppText>
+              </AppCard>
+            </Animated.View>
           ))}
         </View>
 

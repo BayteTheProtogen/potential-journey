@@ -32,15 +32,21 @@ export default function LessonScreen() {
 
   const handleCheck = () => {
     const correct = currentQuestion.correctAnswer === (currentQuestion.type === 'boolean' ? (selectedOption === 'Prawda') : selectedOption);
-    setIsCorrect(correct);
-    setShowFeedback(true);
-    setMascotState(correct ? 'SUCCESS' : 'ERROR');
 
-    if (correct) {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    } else {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-    }
+    // Organic transition sequence
+    setMascotState('THINKING');
+
+    setTimeout(() => {
+      setIsCorrect(correct);
+      setShowFeedback(true);
+      setMascotState(correct ? 'SUCCESS' : 'ERROR');
+
+      if (correct) {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      } else {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      }
+    }, 600);
   };
 
   const nextQuestion = () => {
@@ -59,14 +65,26 @@ export default function LessonScreen() {
     addXP(20);
     completeLesson(lesson.id);
     setIsFinished(true);
-    setMascotState('CELEBRATE');
+
+    // Sequence of victory
+    setMascotState('SUCCESS');
+    setTimeout(() => {
+      setMascotState('CELEBRATE');
+    }, 800);
   };
 
   const renderQuestion = () => {
     return (
       <View style={styles.questionContainer}>
+        {currentQuestion.type === 'analysis' && (
+          <AppCard style={styles.analysisCard}>
+            <AppText size={14} color="#666" style={{ marginBottom: 5 }}>ANALIZA WIADOMOŚCI:</AppText>
+            <AppText size={18} style={styles.analysisText}>{currentQuestion.text}</AppText>
+          </AppCard>
+        )}
+
         <AppText size={24} bold style={styles.questionText}>
-          {currentQuestion.text}
+          {currentQuestion.type === 'analysis' ? 'Co o tym sądzisz?' : currentQuestion.text}
         </AppText>
 
         <View style={styles.optionsContainer}>
@@ -295,5 +313,17 @@ const styles = StyleSheet.create({
   rewardCard: {
     alignItems: 'center',
     marginVertical: 30,
-  }
+  },
+  analysisCard: {
+    backgroundColor: '#F9F9F9',
+    borderStyle: 'dashed',
+    borderWidth: 2,
+    borderColor: '#CCC',
+    marginBottom: 20,
+    padding: 15,
+  },
+  analysisText: {
+    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
+    color: '#333',
+  },
 });

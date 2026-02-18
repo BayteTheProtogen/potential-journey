@@ -7,6 +7,7 @@ import { AppText } from '../../components/common/AppText';
 import { Sygnalek } from '../../components/mascot/Sygnalek';
 import { Shield, Flame, Star, Settings } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
+import Animated, { FadeInDown, SlideInLeft } from 'react-native-reanimated';
 
 export default function PathScreen() {
   const { colors, getFontSize } = useTheme();
@@ -52,8 +53,11 @@ export default function PathScreen() {
             const horizontalOffset = (index % 3 - 1) * 60; // Simple zigzag
 
             return (
-              <TouchableOpacity
+              <Animated.View
                 key={lesson.id}
+                entering={FadeInDown.delay(index * 100)}
+              >
+              <TouchableOpacity
                 disabled={!isAvailable}
                 onPress={() => router.push(`/lesson/${lesson.id}`)}
                 style={[
@@ -85,6 +89,7 @@ export default function PathScreen() {
                   {lesson.title}
                 </AppText>
               </TouchableOpacity>
+              </Animated.View>
             );
           })}
         </View>

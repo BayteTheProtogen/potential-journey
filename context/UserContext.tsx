@@ -6,23 +6,28 @@ interface UserProgress {
   streak: number;
   completedLessons: string[];
   lastLoginDate: string | null;
+  hasSeenOnboarding: boolean;
 }
 
 interface UserContextType {
   progress: UserProgress;
+  isLoading: boolean;
   addXP: (amount: number) => void;
   completeLesson: (lessonId: string) => void;
   updateStreak: () => void;
+  setOnboardingComplete: () => void;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [isLoading, setIsLoading] = useState(true);
   const [progress, setProgress] = useState<UserProgress>({
     xp: 0,
     streak: 0,
     completedLessons: [],
     lastLoginDate: null,
+    hasSeenOnboarding: false,
   });
 
   useEffect(() => {
@@ -33,59 +38,78 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const saved = await AsyncStorage.getItem('userProgress');
       if (saved) {
-        setProgress(JSON.parse(saved));
+        setProgress(prev => ({ ...prev, ...JSON.parse(saved) }));
       }
     } catch (e) {
       console.error('Failed to load progress', e);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const saveProgress = async (newProgress: UserProgress) => {
-    setProgress(newProgress);
     await AsyncStorage.setItem('userProgress', JSON.stringify(newProgress));
   };
 
   const addXP = (amount: number) => {
-    const newProgress = { ...progress, xp: progress.xp + amount };
-    saveProgress(newProgress);
+    setProgress(prev => {
+      const updated = { ...prev, xp: prev.xp + amount };
+      saveProgress(updated);
+      return updated;
+    });
   };
 
   const completeLesson = (lessonId: string) => {
-    if (!progress.completedLessons.includes(lessonId)) {
-      const newProgress = {
-        ...progress,
-        completedLessons: [...progress.completedLessons, lessonId],
-      };
-      saveProgress(newProgress);
-    }
+    setProgress(prev => {
+      if (!prev.completedLessons.includes(lessonId)) {
+        const updated = {
+          ...prev,
+          completedLessons: [...prev.completedLessons, lessonId],
+        };
+        saveProgress(updated);
+        return updated;
+      }
+      return prev;
+    });
+  };
+
+  const setOnboardingComplete = () => {
+    setProgress(prev => {
+      const updated = { ...prev, hasSeenOnboarding: true };
+      saveProgress(updated);
+      return updated;
+    });
   };
 
   const updateStreak = () => {
-    const today = new Date().toISOString().split('T')[0];
-    if (progress.lastLoginDate !== today) {
-      const yesterday = new Date();
-      yesterday.setDate(yesterday.getDate() - 1);
-      const yesterdayStr = yesterday.toISOString().split('T')[0];
+    setProgress(prev => {
+      const today = new Date().toISOString().split('T')[0];
+      if (prev.lastLoginDate !== today) {
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        const yesterdayStr = yesterday.toISOString().split('T')[0];
 
-      let newStreak = progress.streak;
-      if (progress.lastLoginDate === yesterdayStr) {
-        newStreak += 1;
-      } else if (progress.lastLoginDate === null) {
-        newStreak = 1;
-      } else {
-        newStreak = 1; // Streak broken, restart
+        let newStreak = prev.streak;
+        if (prev.lastLoginDate === yesterdayStr) {
+          newStreak += 1;
+        } else {
+          newStreak = 1; // New or broken streak
+        }
+
+        const updated = {
+          ...prev,
+          streak: newStreak,
+          lastLoginDate: today,
+        };
+        saveProgress(updated);
+        return updated;
       }
-
-      saveProgress({
-        ...progress,
-        streak: newStreak,
-        lastLoginDate: today,
-      });
-    }
+      return prev;
+    });
   };
 
   return (
-    <UserContext.Provider value={{ progress, addXP, completeLesson, updateStreak }}>
+    <UserContext.Provider value={{ progress, isLoading, addXP, completeLesson, updateStreak, setOnboardingComplete }}>
       {children}
     </UserContext.Provider>
   );

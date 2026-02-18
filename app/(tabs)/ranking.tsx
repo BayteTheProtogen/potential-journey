@@ -1,23 +1,26 @@
 import React from 'react';
 import { StyleSheet, View, SafeAreaView, FlatList } from 'react-native';
 import { useTheme } from '../../context/ThemeContext';
+import { useUser } from '../../context/UserContext';
 import { AppText } from '../../components/common/AppText';
 import { AppCard } from '../../components/common/AppCard';
 import { Trophy, Medal } from 'lucide-react-native';
-
-const MOCK_RANKING = [
-  { id: '1', name: 'Zofia K.', xp: 1250, rank: 1 },
-  { id: '2', name: 'Andrzej M.', xp: 1100, rank: 2 },
-  { id: '3', name: 'Ty (Strażnik)', xp: 0, rank: 3, isUser: true },
-  { id: '4', name: 'Krystyna W.', xp: 950, rank: 4 },
-  { id: '5', name: 'Janusz P.', xp: 800, rank: 5 },
-];
+import Animated, { FadeInRight } from 'react-native-reanimated';
 
 export default function RankingScreen() {
   const { colors } = useTheme();
-  // In a real app we would get user XP here
+  const { progress } = useUser();
 
-  const renderItem = ({ item }: { item: any }) => (
+  const rankingData = [
+    { id: '1', name: 'Zofia K.', xp: 1250, rank: 1 },
+    { id: '2', name: 'Andrzej M.', xp: 1100, rank: 2 },
+    { id: '3', name: 'Ty (Strażnik)', xp: progress.xp, rank: 3, isUser: true },
+    { id: '4', name: 'Krystyna W.', xp: 950, rank: 4 },
+    { id: '5', name: 'Janusz P.', xp: 800, rank: 5 },
+  ].sort((a, b) => b.xp - a.xp).map((item, index) => ({ ...item, rank: index + 1 }));
+
+  const renderItem = ({ item, index }: { item: any, index: number }) => (
+    <Animated.View entering={FadeInRight.delay(index * 100)}>
     <AppCard
       style={[
         styles.rankItem,
@@ -34,6 +37,7 @@ export default function RankingScreen() {
       <AppText size={20} bold style={styles.name}>{item.name}</AppText>
       <AppText size={18} bold color={colors.primary}>{item.xp} XP</AppText>
     </AppCard>
+    </Animated.View>
   );
 
   return (
@@ -44,7 +48,7 @@ export default function RankingScreen() {
       </View>
 
       <FlatList
-        data={MOCK_RANKING}
+        data={rankingData}
         renderItem={renderItem}
         keyExtractor={item => item.id}
         contentContainerStyle={styles.listContent}

@@ -6,17 +6,20 @@ import { AppText } from '../components/common/AppText';
 import { AppButton } from '../components/common/AppButton';
 import { AppCard } from '../components/common/AppCard';
 import { useTheme } from '../context/ThemeContext';
+import { useUser } from '../context/UserContext';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 
 export default function OnboardingScreen() {
   const [step, setStep] = useState(0);
   const { colors, fontSizeLevel, setFontSizeLevel, highContrast, setHighContrast } = useTheme();
+  const { setOnboardingComplete } = useUser();
   const router = useRouter();
 
   const nextStep = () => {
     if (step < 4) {
       setStep(step + 1);
     } else {
+      setOnboardingComplete();
       router.replace('/(tabs)');
     }
   };
@@ -30,8 +33,8 @@ export default function OnboardingScreen() {
             <AppText size={32} bold center style={styles.title}>
               Witaj! Jestem Sygnałek.
             </AppText>
-            <AppText size={20} center style={styles.subtitle}>
-              Twoim osobistym opiekunem w cyfrowym świecie. Razem nauczymy się, jak bezpiecznie korzystać z internetu.
+            <AppText size={22} center style={styles.subtitle}>
+              Mrugam do Ciebie, bo cieszę się, że tu jesteś! Będę Twoim przewodnikiem po bezpiecznym internecie.
             </AppText>
           </Animated.View>
         );
