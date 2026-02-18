@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, SafeAreaView, TouchableOpacity, Modal, ScrollView } from 'react-native';
+import { StyleSheet, View, SafeAreaView, TouchableOpacity, Modal, ScrollView, Platform } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTheme } from '../../context/ThemeContext';
 import { useUser } from '../../context/UserContext';
